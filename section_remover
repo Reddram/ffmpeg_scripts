@@ -1,0 +1,18 @@
+@Echo Off
+SetLocal
+Set "ext=mp4"
+REM change "ext=mp4" to "ext=mkv" for mkv files
+Set "opts=-v quiet"
+Set "opts=%opts% -print_format "compact=print_section=0:nokey=1:escape=csv""
+Set "opts=%opts% -show_entries "format=duration""
+If Exist *.%ext% (If Not Exist "Trimmed\" MD Trimmed)
+REM above creates subdirectory "Trimmed" for output
+For %%a In (*.%ext%) Do Call :Sub "%%~a"
+Exit/B
+
+:Sub
+C:\ffmpeg\bin\FFMpeg -i %1 -ss 00:00:00 -t 00:06:25 "Trimmed\%~1_part1.mp4"
+C:\ffmpeg\bin\FFMpeg -i %1 -ss 00:06:25 -t 00:07:00 "Trimmed\%~1_part2.mp4"
+C:\ffmpeg\bin\FFMpeg -i %1 -ss 00:13:25 -t 00:07:00 "Trimmed\%~1_part3.mp4"
+C:\ffmpeg\bin\FFMpeg -i %1 -ss 00:20:25 "Trimmed\%~1_part4.mp4"
+
