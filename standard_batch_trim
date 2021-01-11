@@ -1,0 +1,31 @@
+@Echo Off
+SetLocal
+Set "ext=mp4"
+REM change "ext=mp4" to "ext=mkv" for mkv files
+Set "opts=-v quiet"
+Set "opts=%opts% -print_format "compact=print_section=0:nokey=1:escape=csv""
+Set "opts=%opts% -show_entries "format=duration""
+If Exist *.%ext% (If Not Exist "Trimmed\" MD Trimmed)
+REM above creates subdirectory "Trimmed" for output
+For %%a In (*.%ext%) Do Call :Sub "%%~a"
+Exit/B
+
+:Sub
+For /f "Tokens=1* Delims=." %%a In (
+    'C:\ffmpeg\bin\FFProbe %opts% %1') Do (Set/A "ws=%%a-20.00" & Set "ps=%%b")
+REM replace "C:\ffmpeg\" with local path where you have ffmpeg installed
+REM "ws=%%a-5.00" means trim 5 second from end, adjust accordingly
+rem If %ws% Lss 20 GoTo :EOF
+Set/A hh=ws/(60*60), lo=ws%%(60*60), mm=lo/60, ss=lo%%60
+If %hh% Lss 10 Set hh=0%hh%
+If %mm% Lss 10 Set mm=0%mm%
+If %ss% Lss 10 Set ss=0%ss%
+C:\ffmpeg\bin\FFMpeg -ss 00:00:00.0000 -to %hh%:%mm%:%ss%.%ps:~,3% -i %1 -c:v copy -c:a copy -avoid_negative_ts make_zero "Trimmed\%~1"
+REM replace "C:\ffmpeg\" with local path where you have ffmpeg installed
+REM "-ss 00:00:03.7500" trims 3.75 seconds from the beginning, adjust accordingly (HH:MM:SS.xxxx)
+
+REM pause
+REM This makes the batch pause after each file is processed
+REM and wait for you to click through to resume. You can safely
+REM delete "pause" and the batch will process all files
+REM uninterrupted.
